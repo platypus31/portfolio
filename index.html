@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[你的名字] — 作品集</title>
+<meta name="description" content="鞋款與服飾設計作品集（本機預覽版）">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="index.html">[你的名字]</a>
+    <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="main-nav">
+      MENU
+      <span class="bars"><span></span><span></span><span></span></span>
+    </button>
+    <nav class="main-nav" id="main-nav">
+      <a href="index.html" class="current" aria-current="page">Home</a>
+      <a href="about.html">About</a>
+      <a href="design.html">Design</a>
+      <a href="presentation.html">Presentation</a>
+      <a href="dm.html">DM / Promote</a>
+      <a href="trend.html">Trend Analysis</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<div class="home-view">
+  <section class="hero">
+    <svg class="hero-deco" viewBox="0 0 200 200" aria-hidden="true">
+      <polygon points="100,10 180,60 160,150 60,180 20,90" fill="none" stroke="#8a8a8a" stroke-width="0.7"/>
+      <polygon points="100,10 160,150 20,90" fill="none" stroke="#5c5c5c" stroke-width="0.7"/>
+      <line x1="60" y1="180" x2="180" y2="60" stroke="#5c5c5c" stroke-width="0.5"/>
+    </svg>
+    <h1 class="hero-anim">
+      <span class="line-name">[你的名字]</span>
+      <span class="line-sub">Design<br>Portfolio</span>
+    </h1>
+    <div class="rule-row hero-anim">
+      <span class="rule"></span>
+      <p class="tagline">[一句自我介紹]</p>
+    </div>
+  </section>
+
+  <nav class="category-entries" aria-label="五個分類入口">
+    <a href="about.html"><span class="num">01</span>About</a>
+    <a href="design.html"><span class="num">02</span>Design</a>
+    <a href="presentation.html"><span class="num">03</span>Presentation</a>
+    <a href="dm.html"><span class="num">04</span>DM / Promote</a>
+    <a href="trend.html"><span class="num">05</span>Trend Analysis</a>
+  </nav>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div><span class="placeholder">[你的名字]</span></div>
+    <ul class="contact-buttons">
+      <li><a class="contact-btn" href="#" data-todo target="_blank" rel="noopener">LinkedIn</a></li>
+      <li><a class="contact-btn" href="#" data-todo target="_blank" rel="noopener">Behance</a></li>
+      <li><a class="contact-btn contact-email" href="mailto:" data-todo>Email</a></li>
+    </ul>
+    <div>&copy; <span id="year"></span> — 本機預覽版，尚未公開發布</div>
+  </div>
+</footer>
+
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lb-close" aria-label="關閉">&times;</button>
+  <button class="lb-nav lb-prev" id="lb-prev" aria-label="上一張">&#8249;</button>
+  <div class="lb-box" id="lb-box">
+    <img id="lb-img" class="lb-img-swap" src="" alt="">
+    <div class="lb-caption" id="lb-caption"></div>
+  </div>
+  <button class="lb-nav lb-next" id="lb-next" aria-label="下一張">&#8250;</button>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+</body>
+</html>
