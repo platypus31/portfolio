@@ -697,6 +697,18 @@ footer.site-footer .wrap {
   box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--line-strong);
 }
 
+/* 實心強調版（播放簡報等主要動作用） */
+.contact-btn-primary {
+  background: var(--line-strong);
+  color: var(--bg);
+}
+
+.contact-btn-primary:hover,
+.contact-btn-primary:focus-visible {
+  background: transparent;
+  color: var(--text);
+}
+
 .contact-btn[data-todo]::after {
   content: "待填";
   margin-left: 4px;

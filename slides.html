@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="slides-html">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>投影播放 — [你的名字]</title>
+<meta name="description" content="簡報投影播放模式（本機預覽版）">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/slides.css">
+</head>
+<body class="slides-body">
+
+<div class="player-page" id="playerPage">
+  <div class="player-topbar">
+    <a class="player-back" href="presentation.html" id="backLink" aria-label="返回 Presentation 頁">&larr; 返回</a>
+    <div class="player-title" id="playerTitle">投影片</div>
+    <div class="player-actions">
+      <span class="player-counter" id="pageCounter">1 / 1</span>
+      <button type="button" class="player-btn" id="fsBtn" aria-label="全螢幕">&#9974;</button>
+    </div>
+  </div>
+
+  <div class="stage-area" id="stageArea">
+    <div class="swiper slide-swiper" id="slideSwiper">
+      <div class="swiper-wrapper" id="slideWrapper"></div>
+    </div>
+    <button type="button" class="stage-nav prev" id="prevBtn" aria-label="上一頁">&lsaquo;</button>
+    <button type="button" class="stage-nav next" id="nextBtn" aria-label="下一頁">&rsaquo;</button>
+  </div>
+
+  <div class="thumb-strip" id="thumbStrip"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="js/slides-player.js"></script>
+</body>
+</html>
