@@ -9,12 +9,35 @@
     });
   }
 
-  // ---- Coverflow 作品輪播（取代原本的格線）----
+  // ---- 網格視圖（預設顯示）----
+  function renderGrid(container, items, onOpenLightbox) {
+    if (!container) return;
+    var groupId = container.getAttribute("data-group");
+    container.innerHTML = "";
+    items.forEach(function (item, idx) {
+      var fig = document.createElement("div");
+      fig.className = "grid-item";
+      fig.setAttribute("data-index", idx);
+      fig.innerHTML =
+        '<img src="images/' + item.thumb + '" alt="' + escapeHtml(item.title) + '" loading="lazy">' +
+        '<div class="cap">' + escapeHtml(item.title) + "</div>";
+      fig.addEventListener("click", function () {
+        onOpenLightbox(groupId, idx);
+      });
+      container.appendChild(fig);
+    });
+    // 淡入（CSS 的 prefers-reduced-motion 判斷會自動關閉動畫）
+    requestAnimationFrame(function () {
+      container.querySelectorAll(".grid-item").forEach(function (el) {
+        el.classList.add("show");
+      });
+    });
+  }
+
+  // ---- Coverflow 作品輪播（第二視圖，切換鍵開啟）----
   function renderCoverflow(container, items, onOpenLightbox) {
     if (!container) return null;
     var groupId = container.getAttribute("data-group");
-    container.classList.remove("grid");
-    container.classList.add("swiper", "coverflow-swiper");
 
     var slidesHtml = items.map(function (item, idx) {
       return (
@@ -161,6 +184,51 @@
     });
   }
 
+  // ---- 網格／3D 輪播 檢視模式切換（全站共用一個偏好，localStorage 記住，讀不到就預設網格）----
+  var VIEW_MODE_KEY = "portfolioGalleryView";
+
+  function getStoredViewMode() {
+    try {
+      var v = window.localStorage.getItem(VIEW_MODE_KEY);
+      return v === "coverflow" ? "coverflow" : "grid";
+    } catch (e) {
+      return "grid";
+    }
+  }
+
+  function storeViewMode(mode) {
+    try { window.localStorage.setItem(VIEW_MODE_KEY, mode); } catch (e) {}
+  }
+
+  function applyViewMode(mode) {
+    document.documentElement.setAttribute("data-gallery-view", mode);
+    document.querySelectorAll(".view-toggle-btn").forEach(function (btn) {
+      var active = btn.getAttribute("data-view") === mode;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    // 切到 coverflow 時，目前可見的輪播容器在隱藏狀態下初始化寬度算錯，顯示後要強制重算一次
+    requestAnimationFrame(function () {
+      document.querySelectorAll(".coverflow-swiper").forEach(function (el) {
+        if (el.swiper && el.offsetParent !== null) el.swiper.update();
+      });
+    });
+  }
+
+  function setViewMode(mode) {
+    storeViewMode(mode);
+    applyViewMode(mode);
+  }
+
+  function initViewToggle() {
+    document.querySelectorAll(".view-toggle-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        setViewMode(btn.getAttribute("data-view"));
+      });
+    });
+    applyViewMode(getStoredViewMode());
+  }
+
   // ---- Menu toggle ----
   function initMenuToggle() {
     var btn = document.getElementById("menu-toggle");
@@ -182,12 +250,19 @@
     initLightbox();
     initMenuToggle();
 
-    document.querySelectorAll(".grid[data-group]").forEach(function (grid) {
-      var key = grid.getAttribute("data-group");
+    document.querySelectorAll(".grid-view[data-group]").forEach(function (el) {
+      var key = el.getAttribute("data-group");
       var items = (typeof PORTFOLIO_DATA !== "undefined" && PORTFOLIO_DATA[key]) || [];
-      renderCoverflow(grid, items, openLightbox);
+      renderGrid(el, items, openLightbox);
+    });
+
+    document.querySelectorAll(".coverflow-view[data-group]").forEach(function (el) {
+      var key = el.getAttribute("data-group");
+      var items = (typeof PORTFOLIO_DATA !== "undefined" && PORTFOLIO_DATA[key]) || [];
+      renderCoverflow(el, items, openLightbox);
     });
 
     document.querySelectorAll(".tabs").forEach(initTabs);
+    initViewToggle();
   });
 })();

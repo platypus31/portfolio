@@ -366,9 +366,49 @@ section.gallery-section h2 {
   color: var(--text);
 }
 
+/* 網格／3D 輪播 切換控制（gallery-block 包住一組 grid-view + coverflow-view） */
+.gallery-block { margin-bottom: 8px; }
+
+.view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--text-soft);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.view-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-soft);
+  padding: 10px 18px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.view-toggle-btn + .view-toggle-btn { border-left: 1px solid var(--text-soft); }
+
+.view-toggle-btn.active {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* 預設隱藏兩種視圖，由 html[data-gallery-view] 決定顯示哪一種（JS 讀 localStorage 套用，見 main.js） */
+.gallery-block .grid-view,
+.gallery-block .coverflow-view { display: none; }
+
+html:not([data-gallery-view="coverflow"]) .gallery-block .grid-view { display: grid; }
+html[data-gallery-view="coverflow"] .gallery-block .coverflow-view { display: block; }
+
 /* Grid — 作品圖保留原色，不套灰階濾鏡 */
-.grid {
-  display: grid;
+.grid-view {
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 12px;
 }
@@ -602,7 +642,7 @@ footer.site-footer .wrap {
 
 /* Mobile */
 @media (max-width: 480px) {
-  .grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  .grid-view { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
   .grid-item img { height: 120px; }
   nav.main-nav { left: 0; right: 0; min-width: 0; }
   .lb-swiper .swiper-button-prev,

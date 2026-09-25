@@ -33,7 +33,14 @@
 <section class="gallery-section">
   <h2>Design</h2>
   <p class="section-desc">設計圖，放鞋款與草圖。</p>
-  <div class="grid" data-group="design"></div>
+  <div class="gallery-block">
+    <div class="view-toggle" role="group" aria-label="檢視模式">
+      <button type="button" class="view-toggle-btn" data-view="grid" aria-pressed="true">▦ 網格</button>
+      <button type="button" class="view-toggle-btn" data-view="coverflow" aria-pressed="false">◫ 3D 輪播</button>
+    </div>
+    <div class="grid-view" data-group="design"></div>
+    <div class="coverflow-view swiper coverflow-swiper" data-group="design"></div>
+  </div>
 </section>
 </main>
 
