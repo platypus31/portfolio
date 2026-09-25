@@ -1,11 +1,7 @@
-// 極簡 JS：Tab 切換、Lightbox 左右切換（含手機滑動 + 鍵盤）、圖片淡入。
-// 無 build step、無外部套件。動畫全部包在 CSS 的 prefers-reduced-motion 判斷內，
-// 這支檔案只負責「加/移除 class」，實際動不動由 CSS 決定。
+// 極簡 JS：Tab 切換、Coverflow 輪播（Swiper）、Lightbox（Swiper + Zoom，支援手機雙指/雙擊縮放、
+// 桌機雙擊/滾輪縮放）、選單開關。無 build step，Swiper 由各頁 <head>/</body> 前的 CDN <script> 引入。
 (function () {
   "use strict";
-
-  var STAGGER_STEP = 40; // ms
-  var STAGGER_CAP = 600; // ms 上限，圖多就不逐張等
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -13,116 +9,135 @@
     });
   }
 
-  // ---- 作品格線渲染 ----
-  function renderGrid(container, items) {
-    if (!container) return;
+  // ---- Coverflow 作品輪播（取代原本的格線）----
+  function renderCoverflow(container, items, onOpenLightbox) {
+    if (!container) return null;
     var groupId = container.getAttribute("data-group");
-    container.innerHTML = "";
-    items.forEach(function (item, idx) {
-      var fig = document.createElement("div");
-      fig.className = "grid-item";
-      fig.setAttribute("data-index", idx);
-      fig.innerHTML =
+    container.classList.remove("grid");
+    container.classList.add("swiper", "coverflow-swiper");
+
+    var slidesHtml = items.map(function (item, idx) {
+      return (
+        '<div class="swiper-slide" data-index="' + idx + '">' +
         '<img src="images/' + item.thumb + '" alt="' + escapeHtml(item.title) + '" loading="lazy">' +
-        '<div class="cap">' + escapeHtml(item.title) + "</div>";
-      fig.addEventListener("click", function () {
-        openLightbox(groupId, idx);
-      });
-      container.appendChild(fig);
+        '<div class="cap">' + escapeHtml(item.title) + "</div>" +
+        "</div>"
+      );
+    }).join("");
+
+    container.innerHTML =
+      '<div class="swiper-wrapper">' + slidesHtml + "</div>" +
+      '<div class="swiper-button-prev" aria-label="上一張"></div>' +
+      '<div class="swiper-button-next" aria-label="下一張"></div>';
+
+    if (typeof Swiper === "undefined" || !items.length) return null;
+
+    return new Swiper(container, {
+      effect: "coverflow",
+      grabCursor: true,
+      centeredSlides: true,
+      slidesPerView: "auto",
+      keyboard: { enabled: true },
+      coverflowEffect: { rotate: 40, stretch: 0, depth: 150, modifier: 1, slideShadows: false },
+      navigation: {
+        nextEl: container.querySelector(".swiper-button-next"),
+        prevEl: container.querySelector(".swiper-button-prev")
+      },
+      observer: true,
+      observeParents: true,
+      on: {
+        click: function (swInst) {
+          if (swInst.clickedIndex === undefined || swInst.clickedIndex === null) return;
+          if (swInst.clickedIndex === swInst.activeIndex) {
+            onOpenLightbox(groupId, swInst.clickedIndex);
+          } else {
+            swInst.slideTo(swInst.clickedIndex);
+          }
+        }
+      }
     });
   }
 
-  // 對一個容器範圍內的 .grid-item 播放依序錯開淡入
-  function playStagger(scopeEl) {
-    if (!scopeEl) return;
-    var items = scopeEl.querySelectorAll(".grid-item");
-    items.forEach(function (el, i) {
-      el.classList.remove("show");
-      var delay = Math.min(i * STAGGER_STEP, STAGGER_CAP);
-      el.style.transitionDelay = delay + "ms";
-    });
-    void scopeEl.offsetWidth; // 強制 reflow，確保 transition 會播放
-    requestAnimationFrame(function () {
-      items.forEach(function (el) { el.classList.add("show"); });
-    });
+  // ---- Lightbox（每次開啟重建一個 Swiper + Zoom module）----
+  var lbEl, lbWrapper, lbCaption, lbSwiperEl, lbSwiperInstance;
+
+  function buildLightboxSlides(items) {
+    return items.map(function (item) {
+      return (
+        '<div class="swiper-slide">' +
+        '<div class="swiper-zoom-container">' +
+        '<img src="images/' + item.full + '" alt="' + escapeHtml(item.title) + '">' +
+        "</div></div>"
+      );
+    }).join("");
   }
 
-  // ---- Lightbox ----
-  var lbState = { group: null, index: 0 };
-  var lbEl, lbImg, lbCaption;
-  var touchStartX = null, touchStartY = null;
+  function updateCaption(items, index) {
+    var item = items[index];
+    if (!item) return;
+    lbCaption.textContent = item.title + "（" + (index + 1) + " / " + items.length + "）";
+  }
 
   function openLightbox(groupKey, index) {
-    lbState.group = groupKey;
-    lbState.index = index;
-    renderLightboxImage();
+    var items = (typeof PORTFOLIO_DATA !== "undefined" && PORTFOLIO_DATA[groupKey]) || [];
+    if (!items.length || !lbEl) return;
+
+    lbWrapper.innerHTML = buildLightboxSlides(items);
+
+    if (lbSwiperInstance) {
+      lbSwiperInstance.destroy(true, true);
+      lbSwiperInstance = null;
+    }
+
+    if (typeof Swiper !== "undefined") {
+      lbSwiperInstance = new Swiper(lbSwiperEl, {
+        initialSlide: index,
+        zoom: { maxRatio: 4, minRatio: 1 },
+        keyboard: { enabled: true },
+        navigation: { nextEl: ".lb-next-btn", prevEl: ".lb-prev-btn" },
+        on: {
+          slideChange: function (swInst) { updateCaption(items, swInst.activeIndex); }
+        }
+      });
+    }
+    updateCaption(items, index);
     lbEl.classList.add("open");
     document.body.style.overflow = "hidden";
   }
 
   function closeLightbox() {
+    if (!lbEl) return;
     lbEl.classList.remove("open");
     document.body.style.overflow = "";
-  }
-
-  function renderLightboxImage() {
-    var items = PORTFOLIO_DATA[lbState.group] || [];
-    if (!items.length) return;
-    var item = items[lbState.index];
-    lbImg.src = "images/" + item.full;
-    lbImg.alt = item.title;
-    lbCaption.textContent = item.title + "（" + (lbState.index + 1) + " / " + items.length + "）";
-  }
-
-  function updateLightbox() {
-    lbImg.classList.add("fading");
-    window.setTimeout(function () {
-      renderLightboxImage();
-      lbImg.classList.remove("fading");
-    }, 120);
-  }
-
-  function stepLightbox(delta) {
-    var items = PORTFOLIO_DATA[lbState.group] || [];
-    if (!items.length) return;
-    lbState.index = (lbState.index + delta + items.length) % items.length;
-    updateLightbox();
+    if (lbSwiperInstance) {
+      lbSwiperInstance.destroy(true, true);
+      lbSwiperInstance = null;
+    }
+    lbWrapper.innerHTML = "";
   }
 
   function initLightbox() {
     lbEl = document.getElementById("lightbox");
-    lbImg = document.getElementById("lb-img");
+    if (!lbEl) return;
+    lbWrapper = document.getElementById("lb-wrapper");
     lbCaption = document.getElementById("lb-caption");
+    lbSwiperEl = document.getElementById("lb-swiper");
+    if (!lbWrapper || !lbSwiperEl) return; // 頁面無 gallery（如 index/about）不會有這組元素
+
     document.getElementById("lb-close").addEventListener("click", closeLightbox);
-    document.getElementById("lb-prev").addEventListener("click", function () { stepLightbox(-1); });
-    document.getElementById("lb-next").addEventListener("click", function () { stepLightbox(1); });
     lbEl.addEventListener("click", function (e) {
       if (e.target === lbEl) closeLightbox();
     });
     document.addEventListener("keydown", function (e) {
       if (!lbEl.classList.contains("open")) return;
       if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowLeft") stepLightbox(-1);
-      if (e.key === "ArrowRight") stepLightbox(1);
     });
-    // 手機左右滑動切換
-    lbEl.addEventListener("touchstart", function (e) {
-      if (e.touches.length !== 1) return;
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-    }, { passive: true });
-    lbEl.addEventListener("touchend", function (e) {
-      if (touchStartX === null) return;
-      var endX = (e.changedTouches && e.changedTouches[0].clientX) || touchStartX;
-      var endY = (e.changedTouches && e.changedTouches[0].clientY) || touchStartY;
-      var dx = endX - touchStartX;
-      var dy = endY - touchStartY;
-      touchStartX = null;
-      touchStartY = null;
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-        stepLightbox(dx < 0 ? 1 : -1);
-      }
-    }, { passive: true });
+    // 桌機滑鼠滾輪縮放：往上滾放大、往下滾還原（雙擊/雙指縮放由 Swiper Zoom module 內建處理）
+    lbSwiperEl.addEventListener("wheel", function (e) {
+      if (!lbSwiperInstance || !lbSwiperInstance.zoom) return;
+      e.preventDefault();
+      if (e.deltaY < 0) { lbSwiperInstance.zoom.in(); } else { lbSwiperInstance.zoom.out(); }
+    }, { passive: false });
   }
 
   // ---- Tabs ----
@@ -137,7 +152,10 @@
         var target = document.getElementById(btn.getAttribute("data-target"));
         if (target) {
           target.classList.add("active");
-          playStagger(target);
+          // 隱藏分頁裡的輪播在顯示前寬度可能算錯，切換到該分頁時強制重算一次
+          target.querySelectorAll(".coverflow-swiper").forEach(function (el) {
+            if (el.swiper) el.swiper.update();
+          });
         }
       });
     });
@@ -166,18 +184,10 @@
 
     document.querySelectorAll(".grid[data-group]").forEach(function (grid) {
       var key = grid.getAttribute("data-group");
-      var items = PORTFOLIO_DATA[key] || [];
-      renderGrid(grid, items);
+      var items = (typeof PORTFOLIO_DATA !== "undefined" && PORTFOLIO_DATA[key]) || [];
+      renderCoverflow(grid, items, openLightbox);
     });
 
     document.querySelectorAll(".tabs").forEach(initTabs);
-
-    // 每頁只有一個「畫面」，載入時對目前可見的 tab-panel（或整頁的格線）跑一次淡入
-    document.querySelectorAll(".tab-panel.active").forEach(playStagger);
-    if (!document.querySelector(".tab-panel")) {
-      document.querySelectorAll(".grid[data-group]").forEach(function (grid) {
-        playStagger(grid.parentElement);
-      });
-    }
   });
 })();

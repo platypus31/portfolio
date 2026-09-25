@@ -58,11 +58,10 @@ header.site-header {
 .header-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 18px 20px;
   max-width: var(--max-width);
   margin: 0 auto;
-  gap: 12px;
+  gap: 14px;
 }
 
 .brand {
@@ -73,10 +72,39 @@ header.site-header {
   text-transform: uppercase;
 }
 
+/* 回首頁按鈕（除 index 外每頁左上固定一顆，header 本身是 sticky 所以永遠看得到） */
+.back-home {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 14px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.back-home:hover,
+.back-home:focus-visible {
+  background: var(--line-strong);
+  color: var(--bg);
+  outline: none;
+}
+
 .menu-toggle {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
   background: none;
   border: none;
   color: var(--text);
@@ -372,6 +400,67 @@ section.gallery-section h2 {
   text-overflow: ellipsis;
 }
 
+/* Coverflow 作品輪播（Swiper，取代舊格線，js/main.js renderCoverflow 產生內容） */
+.coverflow-swiper {
+  width: 100%;
+  padding: 30px 0 56px;
+}
+
+.coverflow-swiper .swiper-slide {
+  width: 70vw;
+  max-width: 300px;
+  height: 380px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.coverflow-swiper .swiper-slide img {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.coverflow-swiper .swiper-slide .cap {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  padding: 8px 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+}
+
+.coverflow-swiper .swiper-slide-active .cap { color: var(--text); }
+
+.coverflow-swiper .swiper-button-prev,
+.coverflow-swiper .swiper-button-next {
+  --swiper-navigation-size: 18px;
+  top: 50%;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border);
+}
+
+.coverflow-swiper .swiper-button-prev { left: 2px; }
+.coverflow-swiper .swiper-button-next { right: 2px; }
+.coverflow-swiper .swiper-button-disabled { opacity: 0.25; }
+
+@media (min-width: 700px) {
+  .coverflow-swiper .swiper-slide { width: 300px; height: 400px; }
+}
+
 /* About page */
 .about-layout {
   display: flex;
@@ -425,7 +514,7 @@ section.gallery-section h2 {
   margin-right: 6px;
 }
 
-/* Lightbox */
+/* Lightbox（Swiper + Zoom module：手機雙指/雙擊縮放，桌機雙擊/滾輪縮放，見 js/main.js） */
 .lightbox {
   position: fixed;
   inset: 0;
@@ -440,17 +529,23 @@ section.gallery-section h2 {
 
 .lightbox.open { display: flex; }
 
-.lb-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 100%;
+.lb-swiper {
+  width: 100%;
+  max-width: 1100px;
+  height: 78vh;
 }
 
-.lightbox img {
+.lb-swiper .swiper-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lb-swiper .swiper-zoom-container img {
   max-width: 100%;
   max-height: 78vh;
   border-radius: 2px;
+  touch-action: none; /* 讓 Swiper Zoom 接管手勢 */
 }
 
 .lightbox .lb-caption {
@@ -458,6 +553,7 @@ section.gallery-section h2 {
   margin-top: 12px;
   font-size: 0.9rem;
   text-align: center;
+  flex: 0 0 auto;
 }
 
 .lightbox .lb-close {
@@ -470,24 +566,24 @@ section.gallery-section h2 {
   border: none;
   cursor: pointer;
   line-height: 1;
+  z-index: 201;
+  min-width: 44px;
+  min-height: 44px;
 }
 
-.lightbox .lb-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255,255,255,0.12);
-  border: none;
+.lb-swiper .swiper-button-prev,
+.lb-swiper .swiper-button-next {
+  --swiper-navigation-size: 22px;
   color: #fff;
-  font-size: 1.6rem;
+  background: rgba(255,255,255,0.12);
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  cursor: pointer;
 }
 
-.lightbox .lb-prev { left: 12px; }
-.lightbox .lb-next { right: 12px; }
+.lb-swiper .swiper-button-prev { left: 4px; }
+.lb-swiper .swiper-button-next { right: 4px; }
+.lb-swiper .swiper-button-disabled { opacity: 0.25; }
 
 /* Footer */
 footer.site-footer {
@@ -509,10 +605,17 @@ footer.site-footer .wrap {
   .grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
   .grid-item img { height: 120px; }
   nav.main-nav { left: 0; right: 0; min-width: 0; }
-  .lightbox .lb-nav { width: 40px; height: 40px; font-size: 1.3rem; }
+  .lb-swiper .swiper-button-prev,
+  .lb-swiper .swiper-button-next { width: 40px; height: 40px; }
+  .lb-swiper .swiper-button-prev { left: 0; }
+  .lb-swiper .swiper-button-next { right: 0; }
   .about-layout { flex-direction: column; align-items: center; text-align: center; }
   .hero-deco { width: 140px; height: 140px; opacity: 0.35; }
   .contact-buttons { justify-content: center; }
+  .back-home { padding: 0 10px; font-size: 0.7rem; }
+  .brand { font-size: 0.88rem; }
+  .coverflow-swiper .swiper-button-prev,
+  .coverflow-swiper .swiper-button-next { width: 34px; height: 34px; --swiper-navigation-size: 14px; }
 }
 
 /* Contact link buttons（黑白極簡，About 頁 + 頁尾共用） */
